@@ -142,20 +142,20 @@ class Recommender:
 
 
     def pearson(self, person1, person2):
-        numerador = 0
-        denominador_1 = 0
-        denominador_2 = 0
+        num = 0
+        den_1 = 0
+        den_2 = 0
 
 
         for i in range(len(self.utility_matrix[person1])):
             if self.utility_matrix[person1][i]!=-1 and self.utility_matrix[person2][i]!=-1:
-                numerador += ( self.utility_matrix[person1][i] - self.mean_matrix[person1] ) * (self.utility_matrix[person2][i] - self.mean_matrix[person2] )
+                num += ( self.utility_matrix[person1][i] - self.mean_matrix[person1] ) * (self.utility_matrix[person2][i] - self.mean_matrix[person2] )
         
         for i in range(len(self.utility_matrix[person1])):
             if self.utility_matrix[person1][i]!=-1 and self.utility_matrix[person2][i]!=-1:
-                denominador_1 +=  pow(self.utility_matrix[person1][i] - self.mean_matrix[person1], 2)
-                denominador_2 += pow( self.utility_matrix[person2][i] - self.mean_matrix[person2], 2 )
-        result = numerador/(math.sqrt(denominador_1) * math.sqrt(denominador_2))
+                den_1 +=  pow(self.utility_matrix[person1][i] - self.mean_matrix[person1], 2)
+                den_2 += pow( self.utility_matrix[person2][i] - self.mean_matrix[person2], 2 )
+        result = num/(math.sqrt(den_1) * math.sqrt(den_2))
  
         return ( (result + 1 ) / 2)
 
@@ -167,17 +167,17 @@ class Recommender:
             if item!=-1:
                 size += 1
                 counter += item
-        numerador = 0
-        denominador_1 = 0
-        denominador_2 = 0
+        num = 0
+        den_1 = 0
+        den_2 = 0
         for i in range(len(self.utility_matrix[person1])):
             if self.utility_matrix[person1][i]!=-1 and self.utility_matrix[person2][i]!=-1:
-                numerador += ( self.utility_matrix[person1][i] ) * (self.utility_matrix[person2][i] )
+                num += ( self.utility_matrix[person1][i] ) * (self.utility_matrix[person2][i] )
         
         for i in range(len(self.utility_matrix[person1])):
             if self.utility_matrix[person1][i]!=-1 and self.utility_matrix[person2][i]!=-1:
-                denominador_1 +=  pow(self.utility_matrix[person1][i] , 2)
-                denominador_2 +=  pow(self.utility_matrix[person2][i] , 2)
-        return (numerador/(math.sqrt(denominador_1) * math.sqrt(denominador_2)))
+                den_1 +=  pow(self.utility_matrix[person1][i] , 2)
+                den_2 +=  pow(self.utility_matrix[person2][i] , 2)
+        return (num/(math.sqrt(den_1) * math.sqrt(den_2)))
         
 
