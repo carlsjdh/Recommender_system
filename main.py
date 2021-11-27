@@ -16,7 +16,7 @@ def print_matrix(matrix):
 
 parser = argparse.ArgumentParser(description="Calcular las predicciones en base a una matriz de utilidad")
 parser.add_argument("-f", "--file", type=str, help="Matriz de utilidad", required=True)
-parser.add_argument("-m", "--metric", type=str, help="Metrica para calcular la similitud",choices=["pearson", "cosine"], required=True)
+parser.add_argument("-m", "--metric", type=str, help="Metrica para calcular la similitud",choices=["pearson", "cosine", "euclides"], required=True)
 parser.add_argument("-k", "--neighbors", type=int, help="Numero de vecinos a considerar", required=True)
 parser.add_argument("-p", "--prediction",
                     type=str,
@@ -28,12 +28,14 @@ args = parser.parse_args()
 
 f = open(args.file, "r")
 matrix = []
+matrix_print = []
 for x in f:
   matrix.append(map(int, x.replace("\n", "").replace("-", "-1").split(" ")))
+  matrix_print.append(map(str, x.replace("\n", "").split(" ")))
 
 R = Recommender(matrix, args.neighbors , args.prediction, args.metric)
 print("Matriz de utilidad original")
-print_matrix(matrix)
+print_matrix(matrix_print)
 print("")
 
 var = R.calculate()

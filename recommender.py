@@ -3,6 +3,7 @@ import math
 class Recommender:
 
     def __init__(self, utility_matrix, k, type_prediction = "mean", type_sim = "pearson"):
+     
         if type_prediction == "mean":
             self.type_prediction = type_prediction
         else:
@@ -15,18 +16,8 @@ class Recommender:
             for index_x, row in enumerate(x):
                 if row == -1:
                     self.list_unkonwn_items.append( (index_y, index_x) )
-
+      
         numbers_of_neighbors = len(utility_matrix)
-
-        self.sim_matrix = [[0 for x in range(numbers_of_neighbors)] for y in range(numbers_of_neighbors)] 
-        if type_sim == "pearson":
-            for i in range(len(self.sim_matrix)):
-                for j in range(len(self.sim_matrix)):
-                    self.sim_matrix[i][j] = round(self.pearson(i,j),2)
-        else:
-            for i in range(len(self.sim_matrix)):
-                for j in range(len(self.sim_matrix)):
-                    self.sim_matrix[i][j] = round(self.cosine(i,j),2)
 
         self.mean_matrix = []
         for row in utility_matrix:
@@ -38,9 +29,27 @@ class Recommender:
                     size += 1
                     counter += item
             self.mean_matrix.append(float(counter)/float(size))
+
+
+
+        self.sim_matrix = [[0 for x in range(numbers_of_neighbors)] for y in range(numbers_of_neighbors)] 
+        if type_sim == "pearson":
+            for i in range(len(self.sim_matrix)):
+                for j in range(len(self.sim_matrix)):
+                    self.sim_matrix[i][j] = round(self.pearson(i,j),2)
+        elif type_sim == "cosine":
+            for i in range(len(self.sim_matrix)):
+                for j in range(len(self.sim_matrix)):
+                    self.sim_matrix[i][j] = round(self.cosine(i,j),2)
+        else:
+            for i in range(len(self.sim_matrix)):
+                for j in range(len(self.sim_matrix)):
+                    self.sim_matrix[i][j] = round(self.euclides(i,j),2)
+
     
 
     def calculate(self):
+  
         if self.type_prediction == "mean":
             list_known_items = self.prediction_mean()
         else:
@@ -58,15 +67,15 @@ class Recommender:
         while(self.list_unkonwn_items != []):
             unkonwn_item = self.list_unkonwn_items.pop()
             result = 0
-            numerador = 0
-            denominador = 0
-            vecinos_k = self.max_vecinos(unkonwn_item[0])
+            num = 0
+            den = 0
+            vecinos_k = self.max_neighbors(unkonwn_item[0], unkonwn_item[1])
             for index,x in vecinos_k:
-                numerador += self.sim_matrix[unkonwn_item[0]][index] * self.utility_matrix[index][unkonwn_item[1]]
+                num += self.sim_matrix[unkonwn_item[0]][index] * self.utility_matrix[index][unkonwn_item[1]]
             for index,x in vecinos_k:
-                denominador += self.sim_matrix[unkonwn_item[0]][index]
+                den += self.sim_matrix[unkonwn_item[0]][index]
 
-            list_known_items.append( ( unkonwn_item[0], unkonwn_item[1] ,round(result + (float(numerador)/float(denominador)),2) ) )
+            list_known_items.append( ( unkonwn_item[0], unkonwn_item[1] ,round(result + (float(num)/float(den)),2) ) )
         
         return list_known_items
 
@@ -76,23 +85,29 @@ class Recommender:
         while(self.list_unkonwn_items != []):
             unkonwn_item = self.list_unkonwn_items.pop()
             result = self.mean_matrix[unkonwn_item[0]]
-            numerador = 0
-            denominador = 0
-            vecinos_k = self.max_vecinos(unkonwn_item[0])
+     
+            num = 0
+            den = 0
+            vecinos_k = self.max_neighbors(unkonwn_item[0], unkonwn_item[1])
+       
             for index,x in vecinos_k:
-                numerador += self.sim_matrix[unkonwn_item[0]][index]* ( self.utility_matrix[index][unkonwn_item[1]] - self.mean_matrix[index])
-            for index,x in vecinos_k:
-                denominador += self.sim_matrix[unkonwn_item[0]][index]
+                num += self.sim_matrix[unkonwn_item[0]][index] * ( self.utility_matrix[index][unkonwn_item[1]] - self.mean_matrix[index])
+                
 
-            list_known_items.append( ( unkonwn_item[0], unkonwn_item[1] ,round(result + (float(numerador)/float(denominador)),2) ) )
+            for index,x in vecinos_k:
+                den += self.sim_matrix[unkonwn_item[0]][index]
+
+            list_known_items.append( ( unkonwn_item[0], unkonwn_item[1] ,round(result + (float(num)/float(den)),2) ) )
         
         return list_known_items
 
 
-    def max_vecinos(self, person):
+    def max_neighbors(self, person, item):
         var = []
+   
         for index, sim in enumerate(self.sim_matrix[person]):
-            if index != person:
+          
+            if index != person and self.utility_matrix[index][item] != -1:
                 var.append( (index, sim) )
 
         #--------------------------------------- 
@@ -116,41 +131,33 @@ class Recommender:
         var_sorted = sorted(var, key=lambda x: x[1], reverse = True)[:self.k]
         return var_sorted
     
+    def euclides(self, person1, person2):
+        result = 0
+        for i in range(len(self.utility_matrix[person1])):
+            if self.utility_matrix[person1][i]!=-1 and self.utility_matrix[person2][i]!=-1:
+
+                result += pow( (self.utility_matrix[person1][i] - self.utility_matrix[person2][i]),2 )
+        
+        return 1 / (1 + math.sqrt(result) )
+
+
     def pearson(self, person1, person2):
-        counter = 0
-        size = 0
-
-        for item in self.utility_matrix[person1]:
-            if item!=-1:
-                size += 1
-                counter += item
-        mean_person1 = float(counter)/float(size)
-
-        counter = 0
-        size = 0
-        for item in self.utility_matrix[person2]:
-            if item!=-1:
-                size += 1
-                counter += item
-        mean_person2 = float(counter)/float(size)
-
-
-        for item in self.utility_matrix[person1]:
-            if item!=-1:
-                size += 1
-                counter += item
         numerador = 0
         denominador_1 = 0
         denominador_2 = 0
+
+
         for i in range(len(self.utility_matrix[person1])):
             if self.utility_matrix[person1][i]!=-1 and self.utility_matrix[person2][i]!=-1:
-                numerador += ( self.utility_matrix[person1][i] - mean_person1 ) * (self.utility_matrix[person2][i]-mean_person2 )
+                numerador += ( self.utility_matrix[person1][i] - self.mean_matrix[person1] ) * (self.utility_matrix[person2][i] - self.mean_matrix[person2] )
         
         for i in range(len(self.utility_matrix[person1])):
             if self.utility_matrix[person1][i]!=-1 and self.utility_matrix[person2][i]!=-1:
-                denominador_1 +=  pow(self.utility_matrix[person1][i] - mean_person1, 2)
-                denominador_2 += pow( self.utility_matrix[person2][i] - mean_person2, 2 )
-        return (numerador/(math.sqrt(denominador_1) * math.sqrt(denominador_2)))
+                denominador_1 +=  pow(self.utility_matrix[person1][i] - self.mean_matrix[person1], 2)
+                denominador_2 += pow( self.utility_matrix[person2][i] - self.mean_matrix[person2], 2 )
+        result = numerador/(math.sqrt(denominador_1) * math.sqrt(denominador_2))
+ 
+        return ( (result + 1 ) / 2)
 
     def cosine(self, person1, person2):
         counter = 0
