@@ -9,6 +9,7 @@ class Recommender:
         else:
             self.type_prediction = type_prediction
         self.utility_matrix = utility_matrix
+        
         self.k = k
 
         self.list_unkonwn_items = []
@@ -88,13 +89,13 @@ class Recommender:
      
             num = 0
             den = 0
-            vecinos_k = self.max_neighbors(unkonwn_item[0], unkonwn_item[1])
+            neighbors_k = self.max_neighbors(unkonwn_item[0], unkonwn_item[1])
        
-            for index,x in vecinos_k:
+            for index,x in neighbors_k:
                 num += self.sim_matrix[unkonwn_item[0]][index] * ( self.utility_matrix[index][unkonwn_item[1]] - self.mean_matrix[index])
                 
 
-            for index,x in vecinos_k:
+            for index,x in neighbors_k:
                 den += self.sim_matrix[unkonwn_item[0]][index]
 
             list_known_items.append( ( unkonwn_item[0], unkonwn_item[1] ,round(result + (float(num)/float(den)),2) ) )
